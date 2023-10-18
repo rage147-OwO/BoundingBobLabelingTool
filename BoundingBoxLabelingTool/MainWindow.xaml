@@ -1,0 +1,56 @@
+﻿<Window x:Class="BoundingBoxLabelingTool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:av="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        mc:Ignorable="av" x:Name="mainWindow"
+        Title="Bounding Box Labeling Tool" av:DesignHeight="1000" av:DesignWidth="1000">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <ListBox x:Name="imageDirListBox" ItemsSource="{Binding ImageList}" SelectionChanged="ImageDirListBox_SelectionChanged" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Height="400">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+
+
+
+
+        <ScrollViewer x:Name="imageScrollViewer" Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" 
+              HorizontalAlignment="Stretch" VerticalAlignment="Top"
+              PreviewMouseWheel="ImageScrollViewer_PreviewMouseWheel" >
+            <Image Name="selectedImage" Source="{Binding SelectedImagePath}" Stretch="None" 
+                   MouseLeftButtonUp="Image_MouseLeftButtonUp" MouseLeftButtonDown="Image_MouseLeftButtonDown">
+                <Image.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleX="{Binding ScaleRate}" ScaleY="{Binding ScaleRate}"/>
+                    </TransformGroup>
+                </Image.RenderTransform>
+            </Image>
+        </ScrollViewer>
+
+        <Canvas Name="boundingBoxCanvas" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+            <Canvas.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform ScaleX="{Binding ScaleRate}" ScaleY="{Binding ScaleRate}"/>
+                </TransformGroup>
+            </Canvas.RenderTransform>
+        </Canvas>
+
+
+
+
+        <Button Content="←" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Height="30" Margin="10,492,0,0" Click="Left_Click"/>
+
+        <Button Content="→" HorizontalAlignment="Center" VerticalAlignment="Top" Width="50" Height="30" Margin="0,492,0,0" RenderTransformOrigin="-0.58,8.001"/>
+
+        <Button Content="Load Dir" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100" Height="30" Margin="10,442,0,0" Click="LoadDir_Click"/>
+    </Grid>
+</Window>
