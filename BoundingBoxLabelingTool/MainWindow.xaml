@@ -7,7 +7,7 @@
         Title="Bounding Box Labeling Tool" av:DesignHeight="1000" av:DesignWidth="1000">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="200"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -20,26 +20,28 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
+        <Canvas Name="drawCanvas" Background="Black" Grid.Column="1" >
 
-
-
-
-        <ScrollViewer x:Name="imageScrollViewer" Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" 
+            <ScrollViewer x:Name="imageScrollViewer" Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" 
               HorizontalAlignment="Left" VerticalAlignment="Top" 
               PreviewMouseWheel="ImageScrollViewer_PreviewMouseWheel" >
-            <Image Name="selectedImage" Source="{Binding ImageDataManager.SelectedImageData.ImagePath}" Stretch="None"
+                <Image Name="selectedImage" Source="{Binding ImageDataManager.SelectedImageData.ImagePath}" Stretch="None"
                    
                           MouseLeftButtonDown="ImageControl_MouseLeftButtonDown"
        MouseMove="ImageControl_MouseMove"
        MouseLeftButtonUp="ImageControl_MouseLeftButtonUp">
 
-                <Image.RenderTransform>
-                    <TransformGroup>
-                        <ScaleTransform ScaleX="{Binding ScaleRate}" ScaleY="{Binding ScaleRate}"/>
-                    </TransformGroup>
-                </Image.RenderTransform>
-            </Image>
-        </ScrollViewer>
+                    <Image.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleX="{Binding ScaleRate}" ScaleY="{Binding ScaleRate}"/>
+                        </TransformGroup>
+                    </Image.RenderTransform>
+                </Image>
+            </ScrollViewer>
+
+        </Canvas>
+
+
 
 
 
@@ -54,6 +56,8 @@
         <Label Content="{Binding ImageDataManager.SelectedIndex}" HorizontalAlignment="Left" Margin="10,422,0,0" VerticalAlignment="Top" Width="30"/>
         <Label Content="{Binding ImageDataManager.ImageCount}" HorizontalAlignment="Left" Margin="45,422,0,0" VerticalAlignment="Top" Width="30"/>
         <Label Content="/" HorizontalAlignment="Left" Margin="29,422,0,0" VerticalAlignment="Top" Width="16"/>
+
+
 
     </Grid>
 </Window>

@@ -75,35 +75,44 @@ namespace BoundingBoxLabelingTool
 
         private bool isDragging = false;
         private Point startPoint;
+        private Rectangle boundingBox; // 바운딩 박스를 저장할 변수
 
         private void ImageControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
             {
-                startPoint = e.GetPosition(null);
+                startPoint = e.GetPosition(drawCanvas);
                 isDragging = true;
 
-                //make Red Rectangle
-                Rectangle rect = new Rectangle();
-                rect.Stroke = Brushes.Red;
-                rect.StrokeThickness = 2;
+                // 새로운 바운딩 박스 생성
+                boundingBox = new Rectangle
+                {
+                    Stroke = Brushes.Red,
+                    StrokeThickness = 2
+                };
 
-
-
+                // 바운딩 박스를 Canvas에 추가
+                drawCanvas.Children.Add(boundingBox);
+                Canvas.SetLeft(boundingBox, startPoint.X);
+                Canvas.SetTop(boundingBox, startPoint.Y);
             }
         }
+
         private void ImageControl_MouseMove(object sender, MouseEventArgs e)
         {
             if (isDragging && e.LeftButton == MouseButtonState.Pressed)
             {
-                Point mousePos = e.GetPosition(null);
-                Vector diff = startPoint - mousePos;
+                Point mousePos = e.GetPosition(drawCanvas);
+                double width = mousePos.X - startPoint.X;
+                double height = mousePos.Y - startPoint.Y;
 
-                if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
-                    Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
-                {
-                    Debug.WriteLine(mousePos);
-                }
+                // 바운딩 박스의 크기 조정
+                boundingBox.Width = Math.Abs(width);
+                boundingBox.Height = Math.Abs(height);
+
+                // 바운딩 박스 위치 조정
+                Canvas.SetLeft(boundingBox, Math.Min(startPoint.X, mousePos.X));
+                Canvas.SetTop(boundingBox, Math.Min(startPoint.Y, mousePos.Y));
             }
         }
 
