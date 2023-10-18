@@ -11,7 +11,8 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <ListBox x:Name="imageDirListBox" ItemsSource="{Binding ImageDatas}" SelectionChanged="ImageDirListBox_SelectionChanged" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Height="400" av:ItemsSource="{av:SampleData ItemCount=5}">
+
+        <ListBox x:Name="ImageListBox" ItemsSource="{Binding ImageDataManager.ImageDatas}" SelectionChanged="ImageListBox_SelectionChanged" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Height="400" av:ItemsSource="{av:SampleData ItemCount=5}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding ImageName}" />
@@ -26,8 +27,11 @@
         <ScrollViewer x:Name="imageScrollViewer" Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" 
               HorizontalAlignment="Left" VerticalAlignment="Top" 
               PreviewMouseWheel="ImageScrollViewer_PreviewMouseWheel" >
-            <Image Name="selectedImage" Source="{Binding SelectedImageData.ImagePath}" Stretch="None" 
-       MouseLeftButtonUp="Image_MouseLeftButtonUp" MouseLeftButtonDown="Image_MouseLeftButtonDown">
+            <Image Name="selectedImage" Source="{Binding ImageDataManager.SelectedImageData.ImagePath}" Stretch="None"
+                   
+                          MouseLeftButtonDown="ImageControl_MouseLeftButtonDown"
+       MouseMove="ImageControl_MouseMove"
+       MouseLeftButtonUp="ImageControl_MouseLeftButtonUp">
 
                 <Image.RenderTransform>
                     <TransformGroup>
@@ -37,13 +41,6 @@
             </Image>
         </ScrollViewer>
 
-        <Canvas Name="boundingBoxCanvas" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Top">
-            <Canvas.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform ScaleX="{Binding ScaleRate}" ScaleY="{Binding ScaleRate}"/>
-                </TransformGroup>
-            </Canvas.RenderTransform>
-        </Canvas>
 
 
 
@@ -53,7 +50,10 @@
         <Button Content="→" HorizontalAlignment="Center" VerticalAlignment="Top" Width="50" Height="30" Margin="0,600,0,0" Click="Right_Click" RenderTransformOrigin="-0.58,8.001"/>
 
         <Button Content="Load Dir" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100" Height="30" Margin="10,559,0,0" Click="LoadDir_Click" RenderTransformOrigin="0.54,4.157"/>
-        <Label Content="{Binding SelectedImageData.ImageName}" HorizontalAlignment="Left" Margin="10,405,0,0" VerticalAlignment="Top" Width="84"/>
+        <Label Content="{Binding ImageDataManager.SelectedImageData.ImageName}" HorizontalAlignment="Left" Margin="10,405,0,0" VerticalAlignment="Top" Width="84"/>
+        <Label Content="{Binding ImageDataManager.SelectedIndex}" HorizontalAlignment="Left" Margin="10,422,0,0" VerticalAlignment="Top" Width="30"/>
+        <Label Content="{Binding ImageDataManager.ImageCount}" HorizontalAlignment="Left" Margin="45,422,0,0" VerticalAlignment="Top" Width="30"/>
+        <Label Content="/" HorizontalAlignment="Left" Margin="29,422,0,0" VerticalAlignment="Top" Width="16"/>
 
     </Grid>
 </Window>

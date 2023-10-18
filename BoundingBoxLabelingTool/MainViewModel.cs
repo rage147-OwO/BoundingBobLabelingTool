@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,41 +15,6 @@ namespace BoundingBoxLabelingTool
 {
     internal class MainViewModel : INotifyPropertyChanged
     {
-
-
-
-
-        private ObservableCollection<ImageData> _imageDatas;
-
-        public ObservableCollection<ImageData> ImageDatas
-        {
-            get { return _imageDatas; }
-            set
-            {
-                _imageDatas = value;
-                OnPropertyChanged(nameof(ImageDatas));
-            }
-        }
-                                        
-
-
-
-        private ImageData _selectedImageData;
-
-        public ImageData SelectedImageData
-        {
-            get { return _selectedImageData; }
-            set
-            {
-                if (_selectedImageData != value)
-                {
-                    _selectedImageData = value;
-                    OnPropertyChanged(nameof(SelectedImageData));
-                    Debug.WriteLine(_selectedImageData.ImagePath);
-                }
-            }
-        }
-
 
 
 
@@ -70,17 +36,83 @@ namespace BoundingBoxLabelingTool
 
 
 
-
+        public ImageDataManager ImageDataManager { get; set; }
 
         public MainViewModel()
         {
 
         }
+        public void LoadDirectory()
+        {
+            ImageDataManager = new ImageDataManager();
+            ImageDataManager.LoadDirectory();
+            OnPropertyChanged(nameof(ImageDataManager));
+        }
+        public void ChangeSelectedIndex(int selectedIndex)
+        {
+            ImageDataManager.SelectChange(selectedIndex);
+            OnPropertyChanged(nameof(ImageDataManager));
+        }
+
+        public void HandleMouseWheelScroll(MouseWheelEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                double scaleMultiplier = 0.1;
+                ScaleRate = e.Delta > 0 ? ScaleRate * (1 + scaleMultiplier) : ScaleRate * (1 - scaleMultiplier);
+                Debug.WriteLine(ScaleRate.ToString());
+            }
+        }
+
+        public void SelectUp()
+        {
+            ImageDataManager.SelectUp();
+            OnPropertyChanged(nameof(ImageDataManager));
+        }
+
+        public void SelectDown()
+        {
+            ImageDataManager.SelectDown();
+            OnPropertyChanged(nameof(ImageDataManager));
+        }
+
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void
+            OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            //Debug.WriteLine(propertyName + " was set");
+        }
+    }
 
 
 
-        
-        //윈도우 브라우저를 열고 폴더를 선택, 이미지를 모두 읽어서 ImageData를 채움
+    public class ImageDataManager
+    {
+        public ObservableCollection<ImageData> ImageDatas { get; set; }
+        public ImageData SelectedImageData { get; set; }
+
+        public int SelectedIndex
+        {
+            get
+            {
+                return ImageDatas.IndexOf(SelectedImageData);
+            }
+        }
+        public int ImageCount
+        {
+            get
+            {
+                return ImageDatas.Count;
+            }
+        }
+
+        public ImageDataManager()
+        {
+
+        }
         public void LoadDirectory()
         {
             var dialog = new System.Windows.Forms.FolderBrowserDialog();
@@ -101,15 +133,7 @@ namespace BoundingBoxLabelingTool
 
         }
 
-        public void HandleMouseWheelScroll(MouseWheelEventArgs e)
-        {
-            if (Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                double scaleMultiplier = 0.1;
-                ScaleRate = e.Delta > 0 ? ScaleRate * (1 + scaleMultiplier) : ScaleRate * (1 - scaleMultiplier);
-                Debug.WriteLine(ScaleRate.ToString());
-            }
-        }
+        
 
 
         public void SelectChange(int selectedIndex)
@@ -119,8 +143,9 @@ namespace BoundingBoxLabelingTool
                 SelectedImageData = ImageDatas[selectedIndex];
             }
         }
-        
-        public void SelectUp(){
+
+        public void SelectUp()
+        {
             if (ImageDatas.Count > 0)
             {
                 int selectedIndex = ImageDatas.IndexOf(SelectedImageData);
@@ -145,50 +170,37 @@ namespace BoundingBoxLabelingTool
 
             Debug.WriteLine("SelectDown");
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void
-            OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            //Debug.WriteLine(propertyName + " was set");
-        }
     }
 
     public class ImageData
     {
-        public string ImagePath { get; set; }   
-        public string ImageName
-        {
-            get
-            {
-                return System.IO.Path.GetFileName(ImagePath);
-            }
-        }
+
+        public string ImagePath { get; set; }
+        public string ImageName { get; set; }
+
 
         public ImageData(string _ImagePath)
         {
             ImagePath = _ImagePath;
+            ImageName = System.IO.Path.GetFileName(ImagePath);
         }
 
+        public ObservableCollection<BoundingBox> BoundingBoxes { get; set; } = new ObservableCollection<BoundingBox>();
+
+
+
     }
+    public class BoundingBox
+    {
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+    }
+
+
+
+
 
 
 

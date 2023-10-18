@@ -46,10 +46,11 @@ namespace BoundingBoxLabelingTool
         }
 
 
-        private void ImageDirListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ImageListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            _viewModel.SelectChange(imageDirListBox.SelectedIndex);
+            _viewModel.ChangeSelectedIndex(ImageListBox.SelectedIndex);
         }
+
 
 
 
@@ -68,29 +69,50 @@ namespace BoundingBoxLabelingTool
         }
 
 
-        #region Bounding Box Drawing Logic
 
-        private bool isDrawing;
+
+
+
+        private bool isDragging = false;
         private Point startPoint;
-        private Rect boundingBox;
 
-        private void Image_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void ImageControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                startPoint = e.GetPosition(null);
+                isDragging = true;
 
+                //make Red Rectangle
+                Rectangle rect = new Rectangle();
+                rect.Stroke = Brushes.Red;
+                rect.StrokeThickness = 2;
+
+
+
+            }
+        }
+        private void ImageControl_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDragging && e.LeftButton == MouseButtonState.Pressed)
+            {
+                Point mousePos = e.GetPosition(null);
+                Vector diff = startPoint - mousePos;
+
+                if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                    Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+                {
+                    Debug.WriteLine(mousePos);
+                }
+            }
         }
 
-        private void Image_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void ImageControl_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                isDragging = false;
+            }
         }
-
-
-
-        private void Image_MouseMove(object sender, MouseEventArgs e)
-        {
-
-        }
-
-        #endregion
     }
 }
