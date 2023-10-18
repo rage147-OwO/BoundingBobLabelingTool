@@ -48,27 +48,23 @@ namespace BoundingBoxLabelingTool
 
         private void ImageDirListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            string selectedImagePath = imageDirListBox.SelectedItem.ToString();
-            _viewModel.HandleSelectionChanged(selectedImagePath);
+            _viewModel.SelectChange(imageDirListBox.SelectedIndex);
         }
 
-        private void Left_Click(object sender, RoutedEventArgs e)
-        {
-            if (imageDirListBox.SelectedIndex > 0)
-            {
-                imageDirListBox.SelectedIndex--;
-                _viewModel.HandleSelectionChanged(imageDirListBox.SelectedItem.ToString());
-            }
-        }
+
+
+
+
+
+
 
         private void Right_Click(object sender, RoutedEventArgs e)
         {
-            if (imageDirListBox.SelectedIndex < imageDirListBox.Items.Count - 1)
-            {
-                imageDirListBox.SelectedIndex++;
-                _viewModel.HandleSelectionChanged(imageDirListBox.SelectedItem.ToString());
-            }
-
+            _viewModel.SelectUp();
+        }
+        private void Left_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.SelectDown();
         }
 
 
