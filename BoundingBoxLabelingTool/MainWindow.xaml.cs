@@ -1,32 +1,22 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
-
 
 namespace BoundingBoxLabelingTool
 {
-    /// <summary>
-    /// MainWindow.xaml에 대한 상호 작용 논리
-    /// </summary>
     public partial class MainWindow : Window
     {
-
         private MainViewModel _viewModel;
+        private bool _isDragging = false;
+        private Point _startPoint;
+        private Rectangle _boundingBox;
+        private List<Rectangle> _boundingBoxRectangles = new List<Rectangle>();
+        private double _scaleRate = 1.0;
 
         public MainWindow()
         {
@@ -35,163 +25,141 @@ namespace BoundingBoxLabelingTool
             DataContext = _viewModel;
         }
 
+
+
+        #region Column 0
         private void LoadDir_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.LoadDirectory();
         }
-
-        private void ImageScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        private void RightArrow_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.HandleMouseWheelScroll(e);
-
-            double scale = _viewModel.ScaleRate;
-
-
-            //change bounding box size
-            boundingBox.Width = initialWidth * scale;
-            boundingBox.Height = initialHeight * scale;
-
-            //change bounding box position
-            Canvas.SetLeft(boundingBox, initialLeft * scale);
-            Canvas.SetTop(boundingBox, initialTop * scale);
-            DrawBoundingBoxes(_viewModel.ScaleRate);
-
-
+            _viewModel.SelectUp();
+            DrawBoundingBoxes(_scaleRate);
         }
 
-
-        double initialWidth;
-        double initialHeight;
-        double initialLeft;
-        double initialTop;
-
-
-
+        private void LeftArrow_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.SelectDown();
+            DrawBoundingBoxes(_scaleRate);
+        }
         private void ImageListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             _viewModel.ChangeSelectedIndex(ImageListBox.SelectedIndex);
-            DrawBoundingBoxes(_viewModel.ScaleRate);
+            DrawBoundingBoxes(_scaleRate);
         }
 
 
 
+        #endregion
 
 
 
 
 
-
-        private void Right_Click(object sender, RoutedEventArgs e)
+        private void ImageScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            _viewModel.SelectUp();
+
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                double scaleAmount = 0.1;
+                double newScaleRate = _scaleRate + (e.Delta > 0 ? scaleAmount : -scaleAmount);
+
+                // 스케일링 범위 제한
+                const double MinimumScale = 0.1;
+                const double MaximumScale = 10.0;
+                newScaleRate = Math.Max(MinimumScale, Math.Min(MaximumScale, newScaleRate));
+
+                _scaleRate = newScaleRate;
+                Debug.WriteLine(_scaleRate.ToString());
+            }
+
+
+            DrawBoundingBoxes(_scaleRate);
+
+            //change Image ScaleX , ScaleY
+            selectedImage.LayoutTransform = new ScaleTransform(_scaleRate, _scaleRate);
+
         }
-        private void Left_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.SelectDown();
-        }
 
 
 
-
-
-
-        private bool isDragging = false;
-        private Point startPoint;
-        private Rectangle boundingBox;
+        #region Column 1
 
         private void ImageControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
             {
-                startPoint = e.GetPosition(drawCanvas);
-                startPoint = new Point(startPoint.X / _viewModel.ScaleRate, startPoint.Y / _viewModel.ScaleRate); // Scale the start point
-                isDragging = true;
+                _startPoint = e.GetPosition(drawCanvas);
+                _startPoint = new Point(_startPoint.X / _scaleRate, _startPoint.Y / _scaleRate);
+                _isDragging = true;
                 ((UIElement)sender).CaptureMouse();
 
-                boundingBox = new Rectangle
+                _boundingBox = new Rectangle
                 {
                     Stroke = Brushes.Red,
                     StrokeThickness = 2
                 };
 
-                drawCanvas.Children.Add(boundingBox);
-                Canvas.SetLeft(boundingBox, startPoint.X);
-                Canvas.SetTop(boundingBox, startPoint.Y);
+                drawCanvas.Children.Add(_boundingBox);
+                Canvas.SetLeft(_boundingBox, _startPoint.X);
+                Canvas.SetTop(_boundingBox, _startPoint.Y);
             }
         }
-
-
 
         private void ImageControl_MouseMove(object sender, MouseEventArgs e)
         {
-            if (isDragging && e.LeftButton == MouseButtonState.Pressed)
+            if (_isDragging && e.LeftButton == MouseButtonState.Pressed)
             {
                 Point mousePos = e.GetPosition(drawCanvas);
-                mousePos = new Point(mousePos.X / _viewModel.ScaleRate, mousePos.Y / _viewModel.ScaleRate); // Scale the mouse position
-                double width = mousePos.X - startPoint.X;
-                double height = mousePos.Y - startPoint.Y;
+                mousePos = new Point(mousePos.X / _scaleRate, mousePos.Y / _scaleRate);
+                double width = mousePos.X - _startPoint.X;
+                double height = mousePos.Y - _startPoint.Y;
 
-                // Update bounding box dimensions and position after scaling the image
-                boundingBox.Width = Math.Abs(width) * _viewModel.ScaleRate;
-                boundingBox.Height = Math.Abs(height) * _viewModel.ScaleRate;
+                _boundingBox.Width = Math.Abs(width) * _scaleRate;
+                _boundingBox.Height = Math.Abs(height) * _scaleRate;
 
-                double left = Math.Min(startPoint.X, mousePos.X) * _viewModel.ScaleRate;
-                double top = Math.Min(startPoint.Y, mousePos.Y) * _viewModel.ScaleRate;
+                double left = Math.Min(_startPoint.X, mousePos.X) * _scaleRate;
+                double top = Math.Min(_startPoint.Y, mousePos.Y) * _scaleRate;
 
-                Canvas.SetLeft(boundingBox, left);
-                Canvas.SetTop(boundingBox, top);
+                Canvas.SetLeft(_boundingBox, left);
+                Canvas.SetTop(_boundingBox, top);
             }
         }
-
 
         private void ImageControl_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
             {
-                isDragging = false;
+                _isDragging = false;
                 ((UIElement)sender).ReleaseMouseCapture();
 
-                // Save bounding box dimensions and position after scaling the image
-                initialWidth = boundingBox.Width;
-                initialHeight = boundingBox.Height;
-                initialLeft = Canvas.GetLeft(boundingBox);
-                initialTop = Canvas.GetTop(boundingBox);
+                double width = _boundingBox.Width / _scaleRate;
+                double height = _boundingBox.Height / _scaleRate;
+                double x = Canvas.GetLeft(_boundingBox) / _scaleRate;
+                double y = Canvas.GetTop(_boundingBox) / _scaleRate;
 
-                //Save bounding box in _viewModel.ImageDataManager.SelectedImageData.BoundingBoxes
-                //Calculate bounding box position and size in original image
-                double x = initialLeft / _viewModel.ScaleRate;
-                double y = initialTop / _viewModel.ScaleRate;
-                double width = initialWidth / _viewModel.ScaleRate;
-                double height = initialHeight / _viewModel.ScaleRate;
-                _viewModel.AddBoundingBox(x, y, width, height);
+                if(width > 0 && height > 0)
+                {
+                    _viewModel.AddBoundingBox(x, y, width, height);
+                }
 
-
-                //Clear bounding box
-                drawCanvas.Children.Remove(boundingBox);
-
-                DrawBoundingBoxes(_viewModel.ScaleRate);
-
+                drawCanvas.Children.Remove(_boundingBox);
+                DrawBoundingBoxes(_scaleRate);
             }
         }
 
-
-        //Rectangle List
-        private List<Rectangle> boundingBoxRectangles = new List<Rectangle>();
-
         private void DrawBoundingBoxes(double scale)
         {
-            // 기존의 바운딩 박스를 지우기
-            foreach (var rectangle in boundingBoxRectangles)
+            foreach (var rectangle in _boundingBoxRectangles)
             {
                 drawCanvas.Children.Remove(rectangle);
             }
 
-            // 새로운 바운딩 박스 리스트 초기화
-            boundingBoxRectangles.Clear();
+            _boundingBoxRectangles.Clear();
 
             foreach (var boundingBox in _viewModel.ImageDataManager.SelectedImageData.BoundingBoxes)
             {
-                // 바운딩 박스를 그리는 코드
                 Rectangle boundingBoxRect = new Rectangle
                 {
                     Width = boundingBox.Width * scale,
@@ -200,19 +168,14 @@ namespace BoundingBoxLabelingTool
                     StrokeThickness = 2
                 };
 
-                // Canvas에 바운딩 박스를 추가
                 drawCanvas.Children.Add(boundingBoxRect);
-
-                // 바운딩 박스의 위치 설정
                 Canvas.SetLeft(boundingBoxRect, boundingBox.X * scale);
                 Canvas.SetTop(boundingBoxRect, boundingBox.Y * scale);
 
-                // 리스트에 바운딩 박스 추가
-                boundingBoxRectangles.Add(boundingBoxRect);
+                _boundingBoxRectangles.Add(boundingBoxRect);
             }
         }
 
-
+        #endregion
     }
 }
-                                                

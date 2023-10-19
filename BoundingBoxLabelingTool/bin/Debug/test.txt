@@ -1,0 +1,13 @@
+Image: 197.7.png
+X: 188, Y: 292, Width: 109, Height: 124
+
+Image: 314.4.png
+
+Image: 334.6.png
+
+Image: 342.3.png
+
+Image: 360.0.png
+
+Image: a.png
+

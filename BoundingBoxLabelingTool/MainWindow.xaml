@@ -26,11 +26,6 @@
            MouseLeftButtonDown="ImageControl_MouseLeftButtonDown"
            MouseMove="ImageControl_MouseMove"
            MouseLeftButtonUp="ImageControl_MouseLeftButtonUp">
-                <Image.RenderTransform>
-                    <TransformGroup>
-                        <ScaleTransform ScaleX="{Binding ScaleRate}" ScaleY="{Binding ScaleRate}"/>
-                    </TransformGroup>
-                </Image.RenderTransform>
             </Image>
         </Canvas>
 
@@ -42,9 +37,9 @@
 
 
 
-        <Button Content="←" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Height="30" Margin="10,600,0,0" Click="Left_Click"/>
+        <Button Content="←" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Height="30" Margin="10,600,0,0" Click="LeftArrow_Click"/>
 
-        <Button Content="→" HorizontalAlignment="Center" VerticalAlignment="Top" Width="50" Height="30" Margin="0,600,0,0" Click="Right_Click" RenderTransformOrigin="-0.58,8.001"/>
+        <Button Content="→" HorizontalAlignment="Center" VerticalAlignment="Top" Width="50" Height="30" Margin="0,600,0,0" Click="RightArrow_Click" RenderTransformOrigin="-0.58,8.001"/>
 
         <Button Content="Load Dir" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100" Height="30" Margin="10,559,0,0" Click="LoadDir_Click" RenderTransformOrigin="0.54,4.157"/>
         <Label Content="{Binding ImageDataManager.SelectedImageData.ImageName}" HorizontalAlignment="Left" Margin="10,405,0,0" VerticalAlignment="Top" Width="84"/>
