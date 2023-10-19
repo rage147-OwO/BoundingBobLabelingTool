@@ -31,7 +31,14 @@ namespace BoundingBoxLabelingTool
                     Debug.WriteLine(_scaleRate);
                 }
             }
+
+
         }
+
+
+
+
+
 
 
 
@@ -42,6 +49,8 @@ namespace BoundingBoxLabelingTool
         {
 
         }
+
+
         public void LoadDirectory()
         {
             ImageDataManager = new ImageDataManager();
@@ -58,11 +67,19 @@ namespace BoundingBoxLabelingTool
         {
             if (Keyboard.Modifiers == ModifierKeys.Control)
             {
-                double scaleMultiplier = 0.1;
-                ScaleRate = e.Delta > 0 ? ScaleRate * (1 + scaleMultiplier) : ScaleRate * (1 - scaleMultiplier);
+                double scaleAmount = 0.1; 
+                double newScaleRate = ScaleRate + (e.Delta > 0 ? scaleAmount : -scaleAmount);
+
+                // 스케일링 범위 제한
+                const double MinimumScale = 0.1;
+                const double MaximumScale = 10.0;
+                newScaleRate = Math.Max(MinimumScale, Math.Min(MaximumScale, newScaleRate));
+
+                ScaleRate = newScaleRate;
                 Debug.WriteLine(ScaleRate.ToString());
             }
         }
+
 
         public void SelectUp()
         {
@@ -73,6 +90,13 @@ namespace BoundingBoxLabelingTool
         public void SelectDown()
         {
             ImageDataManager.SelectDown();
+            OnPropertyChanged(nameof(ImageDataManager));
+        }
+
+
+        public void AddBoundingBox(double x, double y, double width, double height)
+        {
+            ImageDataManager.AddBoundingBox(x, y, width, height);
             OnPropertyChanged(nameof(ImageDataManager));
         }
 
@@ -101,6 +125,13 @@ namespace BoundingBoxLabelingTool
                 return ImageDatas.IndexOf(SelectedImageData);
             }
         }
+
+        public void AddBoundingBox(double x, double y, double width, double height)
+        {
+            SelectedImageData.BoundingBoxes.Add(new BoundingBox() { X = x, Y = y, Width = width, Height = height });
+        }
+
+
         public int ImageCount
         {
             get
@@ -172,6 +203,7 @@ namespace BoundingBoxLabelingTool
         }
     }
 
+
     public class ImageData
     {
 
@@ -192,10 +224,44 @@ namespace BoundingBoxLabelingTool
     }
     public class BoundingBox
     {
-        public double X { get; set; }
-        public double Y { get; set; }
-        public double Width { get; set; }
-        public double Height { get; set; }
+        private double _x;
+        private double _y;
+        private double _width;
+        private double _height;
+        public double X
+        {
+            get { return _x; }
+            set
+            {
+                if (_x != value)
+                {
+                    _x = value;
+                    Debug.WriteLine("BoundingBox"+ _x);
+                }
+            }
+        }
+        public double Y
+        {
+            get { return _y; }
+            set
+            {
+                if (_y != value)
+                {
+                    _y = value;
+                    Debug.WriteLine("BoundingBox" + _y);
+                }
+            }
+        }
+        public double Width;
+        public double Height;
+
+        public BoundingBox()
+        {
+            //Draw bounding box in canvas
+
+        }
+
+
     }
 
 

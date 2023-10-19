@@ -20,26 +20,21 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <Canvas Name="drawCanvas" Background="Black" Grid.Column="1" >
 
-            <ScrollViewer x:Name="imageScrollViewer" Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" 
-              HorizontalAlignment="Left" VerticalAlignment="Top" 
-              PreviewMouseWheel="ImageScrollViewer_PreviewMouseWheel" >
-                <Image Name="selectedImage" Source="{Binding ImageDataManager.SelectedImageData.ImagePath}" Stretch="None"
-                   
-                          MouseLeftButtonDown="ImageControl_MouseLeftButtonDown"
-       MouseMove="ImageControl_MouseMove"
-       MouseLeftButtonUp="ImageControl_MouseLeftButtonUp">
-
-                    <Image.RenderTransform>
-                        <TransformGroup>
-                            <ScaleTransform ScaleX="{Binding ScaleRate}" ScaleY="{Binding ScaleRate}"/>
-                        </TransformGroup>
-                    </Image.RenderTransform>
-                </Image>
-            </ScrollViewer>
-
+        <Canvas Name="drawCanvas" Background="Black" Grid.Column="1" PreviewMouseWheel="ImageScrollViewer_PreviewMouseWheel">
+            <Image Name="selectedImage" Source="{Binding ImageDataManager.SelectedImageData.ImagePath}" Stretch="None"
+           MouseLeftButtonDown="ImageControl_MouseLeftButtonDown"
+           MouseMove="ImageControl_MouseMove"
+           MouseLeftButtonUp="ImageControl_MouseLeftButtonUp">
+                <Image.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleX="{Binding ScaleRate}" ScaleY="{Binding ScaleRate}"/>
+                    </TransformGroup>
+                </Image.RenderTransform>
+            </Image>
         </Canvas>
+
+
 
 
 

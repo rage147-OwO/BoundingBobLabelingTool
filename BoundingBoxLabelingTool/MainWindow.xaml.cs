@@ -43,7 +43,27 @@ namespace BoundingBoxLabelingTool
         private void ImageScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             _viewModel.HandleMouseWheelScroll(e);
+
+            double scale = _viewModel.ScaleRate;
+
+
+            //change bounding box size
+            boundingBox.Width = initialWidth * scale;
+            boundingBox.Height = initialHeight * scale;
+
+            //change bounding box position
+            Canvas.SetLeft(boundingBox, initialLeft * scale);
+            Canvas.SetTop(boundingBox, initialTop * scale);
+
+
         }
+
+
+        double initialWidth;
+        double initialHeight;
+        double initialLeft;
+        double initialTop;
+
 
 
         private void ImageListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -75,23 +95,23 @@ namespace BoundingBoxLabelingTool
 
         private bool isDragging = false;
         private Point startPoint;
-        private Rectangle boundingBox; // 바운딩 박스를 저장할 변수
+        private Rectangle boundingBox;
 
         private void ImageControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
             {
                 startPoint = e.GetPosition(drawCanvas);
+                startPoint = new Point(startPoint.X / _viewModel.ScaleRate, startPoint.Y / _viewModel.ScaleRate); // Scale the start point
                 isDragging = true;
+                ((UIElement)sender).CaptureMouse();
 
-                // 새로운 바운딩 박스 생성
                 boundingBox = new Rectangle
                 {
                     Stroke = Brushes.Red,
                     StrokeThickness = 2
                 };
 
-                // 바운딩 박스를 Canvas에 추가
                 drawCanvas.Children.Add(boundingBox);
                 Canvas.SetLeft(boundingBox, startPoint.X);
                 Canvas.SetTop(boundingBox, startPoint.Y);
@@ -103,25 +123,72 @@ namespace BoundingBoxLabelingTool
             if (isDragging && e.LeftButton == MouseButtonState.Pressed)
             {
                 Point mousePos = e.GetPosition(drawCanvas);
+                mousePos = new Point(mousePos.X / _viewModel.ScaleRate, mousePos.Y / _viewModel.ScaleRate); // Scale the mouse position
                 double width = mousePos.X - startPoint.X;
                 double height = mousePos.Y - startPoint.Y;
 
-                // 바운딩 박스의 크기 조정
-                boundingBox.Width = Math.Abs(width);
-                boundingBox.Height = Math.Abs(height);
+                // Update bounding box dimensions and position after scaling the image
+                boundingBox.Width = Math.Abs(width) * _viewModel.ScaleRate;
+                boundingBox.Height = Math.Abs(height) * _viewModel.ScaleRate;
 
-                // 바운딩 박스 위치 조정
-                Canvas.SetLeft(boundingBox, Math.Min(startPoint.X, mousePos.X));
-                Canvas.SetTop(boundingBox, Math.Min(startPoint.Y, mousePos.Y));
+                double left = Math.Min(startPoint.X, mousePos.X) * _viewModel.ScaleRate;
+                double top = Math.Min(startPoint.Y, mousePos.Y) * _viewModel.ScaleRate;
+
+                Canvas.SetLeft(boundingBox, left);
+                Canvas.SetTop(boundingBox, top);
             }
         }
+
 
         private void ImageControl_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
             {
                 isDragging = false;
+                ((UIElement)sender).ReleaseMouseCapture();
+
+                // Save bounding box dimensions and position after scaling the image
+                initialWidth = boundingBox.Width;
+                initialHeight = boundingBox.Height;
+                initialLeft = Canvas.GetLeft(boundingBox);
+                initialTop = Canvas.GetTop(boundingBox);
+
+                //Save bounding box in _viewModel.ImageDataManager.SelectedImageData.BoundingBoxes
+                //Calculate bounding box position and size in original image
+                double x = initialLeft / _viewModel.ScaleRate;
+                double y = initialTop / _viewModel.ScaleRate;
+                double width = initialWidth / _viewModel.ScaleRate;
+                double height = initialHeight / _viewModel.ScaleRate;
+                _viewModel.AddBoundingBox(x, y, width, height);         
+
+                //Clear bounding box
+                drawCanvas.Children.Remove(boundingBox);
+                DrawBoundingBoxes()
             }
         }
+
+        private void DrawBoundingBoxes()
+        {
+            foreach (var boundingBox in _viewModel.ImageDataManager.SelectedImageData.BoundingBoxes)
+            {
+                // 바운딩 박스를 그리는 코드
+                Rectangle boundingBoxRect = new Rectangle
+                {
+                    Width = boundingBox.Width,
+                    Height = boundingBox.Height,
+                    Stroke = Brushes.Red,
+                    StrokeThickness = 2
+                };
+
+                // Canvas에 바운딩 박스를 추가
+                drawCanvas.Children.Add(boundingBoxRect);
+
+                // 바운딩 박스의 위치 설정
+                Canvas.SetLeft(boundingBoxRect, boundingBox.X);
+                Canvas.SetTop(boundingBoxRect, boundingBox.Y);
+            }
+        }
+
     }
 }
+                                                
