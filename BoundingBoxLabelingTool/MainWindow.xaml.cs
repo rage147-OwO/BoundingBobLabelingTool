@@ -54,6 +54,7 @@ namespace BoundingBoxLabelingTool
             //change bounding box position
             Canvas.SetLeft(boundingBox, initialLeft * scale);
             Canvas.SetTop(boundingBox, initialTop * scale);
+            DrawBoundingBoxes(_viewModel.ScaleRate);
 
 
         }
@@ -69,6 +70,7 @@ namespace BoundingBoxLabelingTool
         private void ImageListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             _viewModel.ChangeSelectedIndex(ImageListBox.SelectedIndex);
+            DrawBoundingBoxes(_viewModel.ScaleRate);
         }
 
 
@@ -118,6 +120,8 @@ namespace BoundingBoxLabelingTool
             }
         }
 
+
+
         private void ImageControl_MouseMove(object sender, MouseEventArgs e)
         {
             if (isDragging && e.LeftButton == MouseButtonState.Pressed)
@@ -159,23 +163,39 @@ namespace BoundingBoxLabelingTool
                 double y = initialTop / _viewModel.ScaleRate;
                 double width = initialWidth / _viewModel.ScaleRate;
                 double height = initialHeight / _viewModel.ScaleRate;
-                _viewModel.AddBoundingBox(x, y, width, height);         
+                _viewModel.AddBoundingBox(x, y, width, height);
+
 
                 //Clear bounding box
                 drawCanvas.Children.Remove(boundingBox);
-                DrawBoundingBoxes()
+
+                DrawBoundingBoxes(_viewModel.ScaleRate);
+
             }
         }
 
-        private void DrawBoundingBoxes()
+
+        //Rectangle List
+        private List<Rectangle> boundingBoxRectangles = new List<Rectangle>();
+
+        private void DrawBoundingBoxes(double scale)
         {
+            // 기존의 바운딩 박스를 지우기
+            foreach (var rectangle in boundingBoxRectangles)
+            {
+                drawCanvas.Children.Remove(rectangle);
+            }
+
+            // 새로운 바운딩 박스 리스트 초기화
+            boundingBoxRectangles.Clear();
+
             foreach (var boundingBox in _viewModel.ImageDataManager.SelectedImageData.BoundingBoxes)
             {
                 // 바운딩 박스를 그리는 코드
                 Rectangle boundingBoxRect = new Rectangle
                 {
-                    Width = boundingBox.Width,
-                    Height = boundingBox.Height,
+                    Width = boundingBox.Width * scale,
+                    Height = boundingBox.Height * scale,
                     Stroke = Brushes.Red,
                     StrokeThickness = 2
                 };
@@ -184,10 +204,14 @@ namespace BoundingBoxLabelingTool
                 drawCanvas.Children.Add(boundingBoxRect);
 
                 // 바운딩 박스의 위치 설정
-                Canvas.SetLeft(boundingBoxRect, boundingBox.X);
-                Canvas.SetTop(boundingBoxRect, boundingBox.Y);
+                Canvas.SetLeft(boundingBoxRect, boundingBox.X * scale);
+                Canvas.SetTop(boundingBoxRect, boundingBox.Y * scale);
+
+                // 리스트에 바운딩 박스 추가
+                boundingBoxRectangles.Add(boundingBoxRect);
             }
         }
+
 
     }
 }
