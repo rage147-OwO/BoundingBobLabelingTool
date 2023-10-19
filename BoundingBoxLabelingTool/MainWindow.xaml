@@ -46,7 +46,6 @@
                     <Label Content="{Binding ImageDataManager.ImageCount}" HorizontalAlignment="Left" Margin="45,17,0,0" VerticalAlignment="Top" Width="30"/>
                     <Label Content="/" HorizontalAlignment="Left" Margin="29,17,0,0" VerticalAlignment="Top" Width="16"/>
                 </Grid>
-                <TextBlock x:Name="debugTextBlock" HorizontalAlignment="Center" Height="83" Margin="0,901,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="180" Foreground="White" Background="Black"/>
                 <TextBox x:Name="ClassTextBox" Height="24" Canvas.Left="100" Width="52" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center"/>
             </Canvas>
         </Grid>

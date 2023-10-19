@@ -102,9 +102,12 @@ namespace BoundingBoxLabelingTool
         }
         public void MoveBoundingBox(int index, double x, double y)
         {
-            SelectedImageData.BoundingBoxes[index].X = x;
-            SelectedImageData.BoundingBoxes[index].Y = y;
-            SaveLabelingData();
+            if(index>=0 && index < SelectedImageData.BoundingBoxes.Count)
+            {
+                SelectedImageData.BoundingBoxes[index].X = x;
+                SelectedImageData.BoundingBoxes[index].Y = y;
+                SaveLabelingData();
+            }
         }
 
         public int ImageCount
@@ -123,7 +126,9 @@ namespace BoundingBoxLabelingTool
             if (result == DialogResult.OK)
             {
                 string FilePath = dialog.SelectedPath;
-                string[] files = System.IO.Directory.GetFiles(FilePath, "*.png");
+                string[] jpgfiles = System.IO.Directory.GetFiles(FilePath, "*.jpg");
+                string[] pngfiles = System.IO.Directory.GetFiles(FilePath, "*.png");
+                string[] files = jpgfiles.Concat(pngfiles).ToArray();
                 ImageDatas = new ObservableCollection<ImageData>();
                 foreach (string file in files)
                 {
@@ -140,7 +145,8 @@ namespace BoundingBoxLabelingTool
                     data.BoundingBoxes = new ObservableCollection<BoundingBox>();
 
                     // Check if the corresponding txt file exists
-                    string labelingDataPath = data.ImagePath.Replace(".png", ".txt");
+                    string labelingDataPath = data.ImagePath.Replace(".jpg", ".txt");
+                    labelingDataPath = labelingDataPath.Replace(".png", ".txt");
                     if (Array.Exists(files, file => file.Equals(labelingDataPath, StringComparison.OrdinalIgnoreCase)))
                     {
                         // Load the image to get its width and height
@@ -236,7 +242,8 @@ namespace BoundingBoxLabelingTool
             if (SelectedImageData != null)
             {
                 string ImagePath = SelectedImageData.ImagePath;
-                string LabelingDataPath = ImagePath.Replace(".png", ".txt");
+                string LabelingDataPath = ImagePath.Replace(".jpg", ".txt");
+                LabelingDataPath = LabelingDataPath.Replace(".png", ".txt");
                 string LabelingData = "";
 
                 // Get image dimensions

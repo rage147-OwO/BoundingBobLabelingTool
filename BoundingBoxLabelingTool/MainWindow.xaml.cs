@@ -10,38 +10,6 @@ using System.Windows.Shapes;
 
 namespace BoundingBoxLabelingTool
 {
-    public class TextBlockTraceListener : TraceListener
-    {
-        private TextBlock _textBlock;
-        private readonly Queue<string> _debugLines = new Queue<string>();
-        private const int MaxDebugLines = 5;
-
-        public TextBlockTraceListener(TextBlock textBlock)
-        {
-            _textBlock = textBlock;
-        }
-
-        public override void Write(string message)
-        {
-            _debugLines.Enqueue(message.Trim());
-            if (_debugLines.Count > MaxDebugLines)
-            {
-                _debugLines.Dequeue();
-            }
-
-            _textBlock.Dispatcher.Invoke(() =>
-            {
-                _textBlock.Text = string.Join(Environment.NewLine, _debugLines);
-            });
-        }
-
-        public override void WriteLine(string message)
-        {
-            Write(message.Trim() + Environment.NewLine);
-        }
-    }
-
-
     public partial class MainWindow : Window
     {
         private MainViewModel _viewModel;
@@ -57,7 +25,6 @@ namespace BoundingBoxLabelingTool
             _viewModel = new MainViewModel();
             DataContext = _viewModel;
 
-            Debug.Listeners.Add(new TextBlockTraceListener(debugTextBlock));
         }
 
 
