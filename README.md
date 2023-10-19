@@ -1,5 +1,5 @@
 # BoundingBobLabelingTool
  
-## WPF practice
+## WPF practice 2
 
 yolo format Boundingbox making tool
