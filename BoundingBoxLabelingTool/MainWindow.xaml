@@ -12,13 +12,46 @@
         </Grid.ColumnDefinitions>
 
 
-        <ListBox x:Name="ImageListBox" ItemsSource="{Binding ImageDataManager.ImageDatas}" SelectionChanged="ImageListBox_SelectionChanged" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Height="400" av:ItemsSource="{av:SampleData ItemCount=5}">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding ImageName}" />
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <ListBox x:Name="ImageListBox" Grid.Row="0" ItemsSource="{Binding ImageDataManager.ImageDatas}" SelectionChanged="ImageListBox_SelectionChanged" HorizontalAlignment="Center" VerticalAlignment="Top" Width="200" Height="300" av:ItemsSource="{av:SampleData ItemCount=5}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding ImageName}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <ListBox x:Name="ImageListBox1" Grid.Row="1" Background="LightBlue" ItemsSource="{Binding ImageDataManager.SelectedImageData.BoundingBoxes}" SelectionChanged="ImageListBox_SelectionChanged" HorizontalAlignment="Center" VerticalAlignment="Top" Width="200" Height="200"  av:ItemsSource="{av:SampleData ItemCount=5}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding ClassId}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <Canvas Grid.Column="0" Grid.Row="2" Background="LightPink">
+                <Grid HorizontalAlignment="Center" Height="189" Canvas.Left="45" Canvas.Top="50" VerticalAlignment="Top" Width="110">
+                    <Button Content="←" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Height="30" Margin="2,91,0,0" Click="LeftArrow_Click"/>
+
+                    <Button Content="→" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Height="30" Margin="65,91,0,0" Click="RightArrow_Click" RenderTransformOrigin="-0.58,8.001"/>
+
+                    <Button Content="Load Dir" HorizontalAlignment="Center" VerticalAlignment="Top" Width="100" Height="30" Margin="0,48,0,0" Click="LoadDir_Click" RenderTransformOrigin="0.54,4.157"/>
+                    <Label Content="{Binding ImageDataManager.SelectedImageData.ImageName}" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Width="84"/>
+                    <Label Content="{Binding ImageDataManager.SelectedIndex}" HorizontalAlignment="Left" Margin="10,17,0,0" VerticalAlignment="Top" Width="30"/>
+                    <Label Content="{Binding ImageDataManager.ImageCount}" HorizontalAlignment="Left" Margin="45,17,0,0" VerticalAlignment="Top" Width="30"/>
+                    <Label Content="/" HorizontalAlignment="Left" Margin="29,17,0,0" VerticalAlignment="Top" Width="16"/>
+                </Grid>
+                <TextBlock x:Name="debugTextBlock" HorizontalAlignment="Center" Height="83" Margin="0,901,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="180" Foreground="White" Background="Black"/>
+                <TextBox x:Name="ClassTextBox" Height="24" Canvas.Left="100" Width="52" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            </Canvas>
+        </Grid>
+
+
 
 
         <Canvas Name="drawCanvas" Background="Black" Grid.Column="1" PreviewMouseWheel="ImageScrollViewer_PreviewMouseWheel">
@@ -37,15 +70,6 @@
 
 
 
-        <Button Content="←" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Height="30" Margin="10,600,0,0" Click="LeftArrow_Click"/>
-
-        <Button Content="→" HorizontalAlignment="Center" VerticalAlignment="Top" Width="50" Height="30" Margin="0,600,0,0" Click="RightArrow_Click" RenderTransformOrigin="-0.58,8.001"/>
-
-        <Button Content="Load Dir" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100" Height="30" Margin="10,559,0,0" Click="LoadDir_Click" RenderTransformOrigin="0.54,4.157"/>
-        <Label Content="{Binding ImageDataManager.SelectedImageData.ImageName}" HorizontalAlignment="Left" Margin="10,405,0,0" VerticalAlignment="Top" Width="84"/>
-        <Label Content="{Binding ImageDataManager.SelectedIndex}" HorizontalAlignment="Left" Margin="10,422,0,0" VerticalAlignment="Top" Width="30"/>
-        <Label Content="{Binding ImageDataManager.ImageCount}" HorizontalAlignment="Left" Margin="45,422,0,0" VerticalAlignment="Top" Width="30"/>
-        <Label Content="/" HorizontalAlignment="Left" Margin="29,422,0,0" VerticalAlignment="Top" Width="16"/>
 
 
 

@@ -18,34 +18,17 @@ namespace BoundingBoxLabelingTool
 {
     internal class MainViewModel : INotifyPropertyChanged
     {
-
-
-
-
-
-
-
-
-
-
-
-
         public ImageDataManager ImageDataManager { get; set; }
-
-        public MainViewModel()
-        {
-
-        }
-
-
         public void LoadDirectory()
         {
+            Debug.WriteLine("LoadDirectory");
             ImageDataManager = new ImageDataManager();
             ImageDataManager.LoadDirectory();
             OnPropertyChanged(nameof(ImageDataManager));
         }
         public void ChangeSelectedIndex(int selectedIndex)
         {
+            Debug.WriteLine("ChangeSelectedIndex"+selectedIndex);
             ImageDataManager.SelectChange(selectedIndex);
             OnPropertyChanged(nameof(ImageDataManager));
         }
@@ -54,20 +37,35 @@ namespace BoundingBoxLabelingTool
 
         public void SelectUp()
         {
+            Debug.WriteLine("SelectUp");
             ImageDataManager.SelectUp();
             OnPropertyChanged(nameof(ImageDataManager));
         }
 
         public void SelectDown()
         {
+            Debug.Write("SelectDown");
             ImageDataManager.SelectDown();
             OnPropertyChanged(nameof(ImageDataManager));
         }
 
 
-        public void AddBoundingBox(double x, double y, double width, double height)
+        public void AddBoundingBox(double x, double y, double width, double height, int ClassId)
         {
-            ImageDataManager.AddBoundingBox(x, y, width, height);
+            Debug.WriteLine("AddBoundingBox");
+            ImageDataManager.AddBoundingBox(x, y, width, height, ClassId);
+            OnPropertyChanged(nameof(ImageDataManager));
+        }
+        public void MoveBoundingBox(int index, double x, double y)
+        {
+            Debug.WriteLine("MoveBoundingBox");
+            ImageDataManager.MoveBoundingBox(index, x, y);
+            OnPropertyChanged(nameof(ImageDataManager));
+        }
+        public void DeleteBoundingBox(int index)
+        {
+            Debug.WriteLine("DeleteBoundingBox");
+            ImageDataManager.SelectedImageData.BoundingBoxes.RemoveAt(index);
             OnPropertyChanged(nameof(ImageDataManager));
         }
 
@@ -97,12 +95,17 @@ namespace BoundingBoxLabelingTool
             }
         }
 
-        public void AddBoundingBox(double x, double y, double width, double height)
+        public void AddBoundingBox(double x, double y, double width, double height, int C)
         {
-            SelectedImageData.BoundingBoxes.Add(new BoundingBox() { X = x, Y = y, Width = width, Height = height });
+            SelectedImageData.BoundingBoxes.Add(new BoundingBox() { X = x, Y = y, Width = width, Height = height, ClassId=C});
             SaveLabelingData();
         }
-
+        public void MoveBoundingBox(int index, double x, double y)
+        {
+            SelectedImageData.BoundingBoxes[index].X = x;
+            SelectedImageData.BoundingBoxes[index].Y = y;
+            SaveLabelingData();
+        }
 
         public int ImageCount
         {
@@ -112,10 +115,6 @@ namespace BoundingBoxLabelingTool
             }
         }
 
-        public ImageDataManager()
-        {
-
-        }
         public void LoadDirectory()
         {
             var dialog = new System.Windows.Forms.FolderBrowserDialog();
@@ -131,7 +130,66 @@ namespace BoundingBoxLabelingTool
                     ImageDatas.Add(new ImageData(file));
                 }
                 SelectedImageData = ImageDatas[0];
+
+
+                // Load Labeling Data
+               files = System.IO.Directory.GetFiles(FilePath, "*.txt");
+                foreach (ImageData data in ImageDatas)
+                {
+                    // Create a new bounding box collection for the current ImageData object
+                    data.BoundingBoxes = new ObservableCollection<BoundingBox>();
+
+                    // Check if the corresponding txt file exists
+                    string labelingDataPath = data.ImagePath.Replace(".png", ".txt");
+                    if (Array.Exists(files, file => file.Equals(labelingDataPath, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        // Load the image to get its width and height
+                        using (Bitmap bitmap = new Bitmap(data.ImagePath))
+                        {
+                            data.ImageWidth = bitmap.Width;
+                            data.ImageHeight = bitmap.Height;
+                        }
+
+                        string[] lines = File.ReadAllLines(labelingDataPath);
+                        foreach (string line in lines)
+                        {
+                            string[] values = line.Split(' ');
+
+                            if (values.Length == 5) // Assuming the format is "class_id centerX centerY width height"
+                            {
+                                int classId = int.Parse(values[0]);
+                                double centerX = double.Parse(values[1]);
+                                double centerY = double.Parse(values[2]);
+                                double width = double.Parse(values[3]);
+                                double height = double.Parse(values[4]);
+
+                                // Convert centerX and centerY to top-left corner coordinates
+                                double x = (centerX - width / 2) * data.ImageWidth;
+                                double y = (centerY - height / 2) * data.ImageHeight;
+
+                                // Create and add a new bounding box
+                                BoundingBox boundingBox = new BoundingBox
+                                {
+                                    X = x,
+                                    Y = y,
+                                    Width = width * data.ImageWidth,
+                                    Height = height * data.ImageHeight,
+                                    ClassId = classId
+                                };
+
+                                data.BoundingBoxes.Add(boundingBox);
+                            }
+                        }
+                    }
+                }
+
+
+
+
+
             }
+
+
 
 
 
@@ -159,8 +217,6 @@ namespace BoundingBoxLabelingTool
                     SelectedImageData = ImageDatas[selectedIndex + 1];
                 }
             }
-
-            Debug.WriteLine("SelectUp");
         }
         public void SelectDown()
         {
@@ -172,8 +228,6 @@ namespace BoundingBoxLabelingTool
                     SelectedImageData = ImageDatas[selectedIndex - 1];
                 }
             }
-
-            Debug.WriteLine("SelectDown");
         }
 
         public void SaveLabelingData()
@@ -210,8 +264,9 @@ namespace BoundingBoxLabelingTool
                     double centerY = (boundingBox.Y + boundingBox.Height / 2) / imageHeight;
                     double width = boundingBox.Width / imageWidth;
                     double height = boundingBox.Height / imageHeight;
+                    int classId = boundingBox.ClassId;
 
-                    LabelingData += "0 " + centerX.ToString() + " " + centerY.ToString() + " " + width.ToString() + " " + height.ToString() + "\n";
+                    LabelingData += classId+" " + centerX.ToString() + " " + centerY.ToString() + " " + width.ToString() + " " + height.ToString() + "\n";
                 }
 
                 System.IO.File.WriteAllText(LabelingDataPath, LabelingData);
@@ -222,6 +277,9 @@ namespace BoundingBoxLabelingTool
 
         public class ImageData
         {
+
+            public int ImageWidth { get; set; }
+            public int ImageHeight { get; set; }
 
             public string ImagePath { get; set; }
             public string ImageName { get; set; }
@@ -240,44 +298,18 @@ namespace BoundingBoxLabelingTool
         }
         public class BoundingBox
         {
-            private double _x;
-            private double _y;
-            private double _width;
-            private double _height;
-            public double X
-            {
-                get { return _x; }
-                set
-                {
-                    if (_x != value)
-                    {
-                        _x = value;
-                        Debug.WriteLine("BoundingBox" + _x);
-                    }
-                }
-            }
-            public double Y
-            {
-                get { return _y; }
-                set
-                {
-                    if (_y != value)
-                    {
-                        _y = value;
-                        Debug.WriteLine("BoundingBox" + _y);
-                    }
-                }
-            }
-            public double Width;
-            public double Height;
+
+            public double X { get; set; }
+            public double Y { get; set; }
+            public double Width { get; set; }
+            public double Height { get; set; }
+
+            public int ClassId { get; set; }
 
             public BoundingBox()
             {
-                //Draw bounding box in canvas
-
+                ClassId = 0;
             }
-
-
         }
 
 

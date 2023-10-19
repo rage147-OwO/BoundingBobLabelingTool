@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -9,10 +10,42 @@ using System.Windows.Shapes;
 
 namespace BoundingBoxLabelingTool
 {
+    public class TextBlockTraceListener : TraceListener
+    {
+        private TextBlock _textBlock;
+        private readonly Queue<string> _debugLines = new Queue<string>();
+        private const int MaxDebugLines = 5;
+
+        public TextBlockTraceListener(TextBlock textBlock)
+        {
+            _textBlock = textBlock;
+        }
+
+        public override void Write(string message)
+        {
+            _debugLines.Enqueue(message.Trim());
+            if (_debugLines.Count > MaxDebugLines)
+            {
+                _debugLines.Dequeue();
+            }
+
+            _textBlock.Dispatcher.Invoke(() =>
+            {
+                _textBlock.Text = string.Join(Environment.NewLine, _debugLines);
+            });
+        }
+
+        public override void WriteLine(string message)
+        {
+            Write(message.Trim() + Environment.NewLine);
+        }
+    }
+
+
     public partial class MainWindow : Window
     {
         private MainViewModel _viewModel;
-        private bool _isDragging = false;
+        private bool _isDrawing = false;
         private Point _startPoint;
         private Rectangle _boundingBox;
         private List<Rectangle> _boundingBoxRectangles = new List<Rectangle>();
@@ -23,6 +56,8 @@ namespace BoundingBoxLabelingTool
             InitializeComponent();
             _viewModel = new MainViewModel();
             DataContext = _viewModel;
+
+            Debug.Listeners.Add(new TextBlockTraceListener(debugTextBlock));
         }
 
 
@@ -31,6 +66,7 @@ namespace BoundingBoxLabelingTool
         private void LoadDir_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.LoadDirectory();
+            DrawBoundingBoxes(_scaleRate);
         }
         private void RightArrow_Click(object sender, RoutedEventArgs e)
         {
@@ -88,11 +124,11 @@ namespace BoundingBoxLabelingTool
 
         private void ImageControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left)
+            if (e.ChangedButton == MouseButton.Left && !Keyboard.IsKeyDown(Key.LeftCtrl))
             {
                 _startPoint = e.GetPosition(drawCanvas);
                 _startPoint = new Point(_startPoint.X / _scaleRate, _startPoint.Y / _scaleRate);
-                _isDragging = true;
+                _isDrawing = true;
                 ((UIElement)sender).CaptureMouse();
 
                 _boundingBox = new Rectangle
@@ -109,7 +145,7 @@ namespace BoundingBoxLabelingTool
 
         private void ImageControl_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_isDragging && e.LeftButton == MouseButtonState.Pressed)
+            if (_isDrawing && e.LeftButton == MouseButtonState.Pressed)
             {
                 Point mousePos = e.GetPosition(drawCanvas);
                 mousePos = new Point(mousePos.X / _scaleRate, mousePos.Y / _scaleRate);
@@ -131,26 +167,35 @@ namespace BoundingBoxLabelingTool
         {
             if (e.ChangedButton == MouseButton.Left)
             {
-                _isDragging = false;
-                ((UIElement)sender).ReleaseMouseCapture();
-
-                double width = _boundingBox.Width / _scaleRate;
-                double height = _boundingBox.Height / _scaleRate;
-                double x = Canvas.GetLeft(_boundingBox) / _scaleRate;
-                double y = Canvas.GetTop(_boundingBox) / _scaleRate;
-
-                if(width > 0 && height > 0)
+                if (_isDrawing)
                 {
-                    _viewModel.AddBoundingBox(x, y, width, height);
-                }
+                    _isDrawing = false;
+                    ((UIElement)sender).ReleaseMouseCapture();
 
-                drawCanvas.Children.Remove(_boundingBox);
-                DrawBoundingBoxes(_scaleRate);
+                    double width = _boundingBox.Width / _scaleRate;
+                    double height = _boundingBox.Height / _scaleRate;
+                    double x = Canvas.GetLeft(_boundingBox) / _scaleRate;
+                    double y = Canvas.GetTop(_boundingBox) / _scaleRate;
+
+                    if (width > 0 && height > 0)
+                    {
+                        // 클래스 정보를 얻어올 수 있는 방법에 따라 클래스 ID를 가져오세요.
+                        // 예: int classId = GetClassIdFromUserInput();
+                        if(int.TryParse(ClassTextBox.Text, out int classId))
+                        {
+                            _viewModel.AddBoundingBox(x, y, width, height, int.Parse(ClassTextBox.Text));
+                        }
+                    }     
+                    drawCanvas.Children.Remove(_boundingBox);
+                    DrawBoundingBoxes(_scaleRate);
+                }
             }
         }
 
+
         private void DrawBoundingBoxes(double scale)
-        {
+        {                                              
+            Debug.WriteLine("DrawBoundingBoxes");
             foreach (var rectangle in _boundingBoxRectangles)
             {
                 drawCanvas.Children.Remove(rectangle);
@@ -165,9 +210,11 @@ namespace BoundingBoxLabelingTool
                     Width = boundingBox.Width * scale,
                     Height = boundingBox.Height * scale,
                     Stroke = Brushes.Red,
-                    StrokeThickness = 2
+                    StrokeThickness = 4
                 };
-
+                boundingBoxRect.MouseLeftButtonDown += BoundingBoxRectangle_MouseLeftButtonDown;
+                boundingBoxRect.MouseMove += BoundingBoxRectangle_MouseMove;
+                boundingBoxRect.MouseLeftButtonUp += BoundingBoxRectangle_MouseLeftButtonUp;
                 drawCanvas.Children.Add(boundingBoxRect);
                 Canvas.SetLeft(boundingBoxRect, boundingBox.X * scale);
                 Canvas.SetTop(boundingBoxRect, boundingBox.Y * scale);
@@ -176,6 +223,66 @@ namespace BoundingBoxLabelingTool
             }
         }
 
-        #endregion
-    }
+
+        private bool isDragging = false;
+        private Point startPoint;
+        private Rectangle selectedRectangle;
+        private void BoundingBoxRectangle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {                                                                
+            //Ctrl + Click
+            if (Keyboard.IsKeyDown(Key.LeftCtrl))
+            {
+                Rectangle clickedRectangle = (Rectangle)sender;
+                int selectedBoundingBoxIndex = _boundingBoxRectangles.IndexOf(clickedRectangle);
+                _viewModel.DeleteBoundingBox(selectedBoundingBoxIndex);
+                DrawBoundingBoxes(_scaleRate);
+            }
+
+            //Click
+            selectedRectangle = sender as Rectangle;
+            isDragging = true;
+            startPoint = e.GetPosition(drawCanvas);
+            selectedRectangle.CaptureMouse();
+        }
+
+
+        private void BoundingBoxRectangle_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDragging)
+            {
+                var newPoint = e.GetPosition(drawCanvas);
+                double deltaX = newPoint.X - startPoint.X;
+                double deltaY = newPoint.Y - startPoint.Y;
+
+                Canvas.SetLeft(selectedRectangle, Canvas.GetLeft(selectedRectangle) + deltaX);
+                Canvas.SetTop(selectedRectangle, Canvas.GetTop(selectedRectangle) + deltaY);
+
+                startPoint = newPoint;
+            }
+        }
+
+        private void BoundingBoxRectangle_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (isDragging)
+            {
+                selectedRectangle.ReleaseMouseCapture();
+                isDragging = false;
+                
+                // Update bounding box data by index
+                int selectedBoundingBoxIndex = _boundingBoxRectangles.IndexOf(selectedRectangle);
+                double x = Canvas.GetLeft(selectedRectangle) / _scaleRate;
+                double y = Canvas.GetTop(selectedRectangle) / _scaleRate;
+                double width = selectedRectangle.Width / _scaleRate;
+                double height = selectedRectangle.Height / _scaleRate;
+                _viewModel.MoveBoundingBox(selectedBoundingBoxIndex, x, y);
+
+
+            }
+        }
+
+
+
+
+            #endregion
+        }
 }
