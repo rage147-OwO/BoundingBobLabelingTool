@@ -26,7 +26,7 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <ListBox x:Name="ImageListBox1" Grid.Row="1" Background="LightBlue" ItemsSource="{Binding ImageDataManager.SelectedImageData.BoundingBoxes}" SelectionChanged="ImageListBox_SelectionChanged" HorizontalAlignment="Center" VerticalAlignment="Top" Width="200" Height="200"  av:ItemsSource="{av:SampleData ItemCount=5}">
+            <ListBox x:Name="BoundingBoxListBox" Grid.Row="1" Background="LightBlue" ItemsSource="{Binding ImageDataManager.SelectedImageData.BoundingBoxes}" SelectionChanged="BoundingBoxListBox_SelectionChanged" HorizontalAlignment="Center" VerticalAlignment="Top" Width="200" Height="200"  av:ItemsSource="{av:SampleData ItemCount=5}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding ClassId}" />
@@ -46,7 +46,8 @@
                     <Label Content="{Binding ImageDataManager.ImageCount}" HorizontalAlignment="Left" Margin="45,17,0,0" VerticalAlignment="Top" Width="30"/>
                     <Label Content="/" HorizontalAlignment="Left" Margin="29,17,0,0" VerticalAlignment="Top" Width="16"/>
                 </Grid>
-                <TextBox x:Name="ClassTextBox" Height="24" Canvas.Left="100" Width="52" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <TextBox x:Name="ClassTextBox" Text="0" Height="24" Canvas.Left="100" Width="52" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <Label Content="Class" Height="24" Canvas.Left="25" Width="52" Canvas.Top="10" HorizontalAlignment="Left" VerticalAlignment="Center"/>
             </Canvas>
         </Grid>
 

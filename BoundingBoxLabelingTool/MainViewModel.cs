@@ -65,7 +65,10 @@ namespace BoundingBoxLabelingTool
         public void DeleteBoundingBox(int index)
         {
             Debug.WriteLine("DeleteBoundingBox");
-            ImageDataManager.SelectedImageData.BoundingBoxes.RemoveAt(index);
+            if(index>=0 && index < ImageDataManager.SelectedImageData.BoundingBoxes.Count)
+            {
+                ImageDataManager.SelectedImageData.BoundingBoxes.RemoveAt(index);
+            }
             OnPropertyChanged(nameof(ImageDataManager));
         }
 

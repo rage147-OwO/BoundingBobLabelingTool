@@ -51,6 +51,13 @@ namespace BoundingBoxLabelingTool
             _viewModel.ChangeSelectedIndex(ImageListBox.SelectedIndex);
             DrawBoundingBoxes(_scaleRate);
         }
+        private void BoundingBoxListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+            _viewModel.DeleteBoundingBox(BoundingBoxListBox.SelectedIndex);
+            DrawBoundingBoxes(_scaleRate);
+
+        }
 
 
 
